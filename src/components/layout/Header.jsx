@@ -1,4 +1,4 @@
-import { Menu, Plane, X } from 'lucide-react';
+import { BriefcaseBusiness, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { usePortal } from '../../app/providers/PortalProvider';
@@ -17,8 +17,8 @@ export function Header() {
     <header className="sticky top-0 z-40 border-b border-ink/10 bg-paper/95 backdrop-blur">
       <div className="page-shell flex h-[72px] items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-display text-xl font-bold tracking-[-0.04em]" onClick={() => setOpen(false)}>
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-amber"><Plane size={18} /></span>
-          Departure
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-ink text-amber"><BriefcaseBusiness size={18} /></span>
+          GammaJobs
         </Link>
         <nav className="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
           <NavLink to="/jobs" className={navClass}>Browse jobs</NavLink>

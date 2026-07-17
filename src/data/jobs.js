@@ -21,8 +21,8 @@ export const initialJobs = [
 ];
 
 export const demoUsers = [
-  { id: 'applicant-1', email: 'applicant@departure.dev', password: 'demo123', role: 'applicant', name: 'Amara Okafor' },
-  { id: 'admin-1', email: 'admin@departure.dev', password: 'demo123', role: 'admin', name: 'Departure Admin' },
+  { id: 'applicant-1', email: 'applicant@gammajobs.demo', password: 'demo123', role: 'applicant', name: 'Amara Okafor' },
+  { id: 'admin-1', email: 'admin@gammajobs.demo', password: 'demo123', role: 'admin', name: 'GammaJobs Admin' },
 ];
 
 export const initialProfiles = {

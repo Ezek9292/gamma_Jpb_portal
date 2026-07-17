@@ -24,7 +24,7 @@ export function JobCard({ job }) {
       </div>
       <div className="flex items-center justify-between border-t border-dashed border-ink/25 bg-ink/[0.025] px-5 py-4 sm:flex-col sm:justify-center sm:border-l sm:border-t-0 sm:px-4 sm:text-center">
         <div><p className="font-mono text-[10px] uppercase tracking-widest text-slate">Posted</p><p className="mt-1 font-mono text-xs font-semibold">{formatDate(job.postedAt).replace(', 2026', '')}</p></div>
-        <div className="sm:mt-6"><p className="font-mono text-[10px] uppercase tracking-widest text-slate">Flight</p><p className="mt-1 font-mono text-sm font-bold text-coral">{job.code}</p></div>
+        <div className="sm:mt-6"><p className="font-mono text-[10px] uppercase tracking-widest text-slate">Job code</p><p className="mt-1 font-mono text-sm font-bold text-coral">{job.code}</p></div>
       </div>
     </article>
   );

@@ -4,17 +4,20 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { usePortal } from '../../app/providers/PortalProvider';
 import { StatusBadge } from '../../components/ui/StatusBadge';
 import { formatDate, titleCase } from '../../utils/formatters';
+import { validateDocument } from '../../utils/fileValidation';
 import { NotFoundPage } from '../not-found/NotFoundPage';
 
 export function JobDetailPage() {
   const { jobId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const { jobs, currentUser, currentProfile, hasApplied, applyToJob } = usePortal();
+  const { jobs, jobsLoading, currentUser, currentProfile, hasApplied, applyToJob } = usePortal();
   const [showApplication, setShowApplication] = useState(false);
   const [documents, setDocuments] = useState({ cv: null, coverLetter: null });
   const [formError, setFormError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const job = jobs.find((item) => item.id === jobId);
+  if (jobsLoading) return <div className="page-shell py-24 text-center text-slate" role="status">Loading job…</div>;
   if (!job) return <NotFoundPage compact />;
   const applied = hasApplied(job.id);
 
@@ -28,25 +31,26 @@ export function JobDetailPage() {
   const chooseDocument = (field, file) => {
     setFormError('');
     if (!file) return;
-    const extension = file.name.split('.').pop()?.toLowerCase();
-    if (!['pdf', 'doc', 'docx'].includes(extension)) {
-      setFormError('Please upload PDF, DOC, or DOCX files only.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setFormError('Each document must be 5 MB or smaller.');
-      return;
-    }
+    const validationError = validateDocument(file, { pdfOnly: true });
+    if (validationError) { setFormError(validationError); return; }
     setDocuments((value) => ({ ...value, [field]: file }));
   };
 
-  const submitApplication = (event) => {
+  const submitApplication = async (event) => {
     event.preventDefault();
     if (!documents.cv || !documents.coverLetter) {
       setFormError('Upload both your CV and cover letter to continue.');
       return;
     }
-    if (applyToJob(job.id, documents)) setShowApplication(false);
+    setSubmitting(true);
+    try {
+      await applyToJob(job.id, documents);
+      setShowApplication(false);
+    } catch (error) {
+      setFormError(error.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   let buttonText = 'Apply for this role';
@@ -70,17 +74,17 @@ export function JobDetailPage() {
           <section className="mt-10"><h2 className="font-display text-2xl font-bold">What you’ll bring</h2><ul className="mt-5 grid gap-4">{job.requirements.map((item) => <li key={item} className="flex gap-3 text-slate"><span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-forest/10 text-forest"><Check size={14} /></span><span>{item}</span></li>)}</ul></section>
         </article>
         <aside className="ticket-card sticky top-28 rounded-2xl border border-ink/10 bg-paperCard p-6 shadow-ticket">
-          <p className="font-mono text-xs uppercase tracking-widest text-slate">Boarding pass</p><p className="mt-2 font-mono text-xl font-bold text-coral">{job.code}</p><div className="route-line my-6 h-px" />
-          <p className="font-display text-lg font-bold">Ready to make your move?</p><p className="mt-2 text-sm leading-6 text-slate">Your profile, CV, and cover letter will be shared with {job.company}.</p>
+          <p className="font-mono text-xs uppercase tracking-widest text-slate">Job reference</p><p className="mt-2 font-mono text-xl font-bold text-coral">{job.code}</p><div className="route-line my-6 h-px" />
+          <p className="font-display text-lg font-bold">Interested in this role?</p><p className="mt-2 text-sm leading-6 text-slate">Your profile, CV, and cover letter will be shared with {job.company}.</p>
           {!showApplication && <button onClick={handleApply} disabled={applied || job.status === 'closed' || currentUser?.role === 'admin'} className="btn-primary mt-6 w-full">{applied && <Check size={17} />}{buttonText}</button>}
           {showApplication && !applied && (
             <form onSubmit={submitApplication} className="mt-6 grid gap-4" noValidate>
               <div className="flex items-center justify-between gap-3"><h2 className="font-display font-bold">Application documents</h2><button type="button" onClick={() => setShowApplication(false)} className="grid h-8 w-8 place-items-center rounded-lg text-slate hover:bg-ink/5 hover:text-ink" aria-label="Close application form"><X size={17} /></button></div>
               <DocumentUpload label="CV or resume" file={documents.cv} onChange={(file) => chooseDocument('cv', file)} />
               <DocumentUpload label="Cover letter" file={documents.coverLetter} onChange={(file) => chooseDocument('coverLetter', file)} />
-              <p className="text-xs leading-5 text-slate">PDF, DOC, or DOCX · 5 MB maximum per file</p>
+              <p className="text-xs leading-5 text-slate">PDF only · 5 MB maximum per file</p>
               {formError && <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-semibold text-red-700" role="alert">{formError}</p>}
-              <button type="submit" className="btn-primary w-full">Submit application</button>
+              <button type="submit" className="btn-primary w-full" disabled={submitting}>{submitting ? 'Uploading documents…' : 'Submit application'}</button>
             </form>
           )}
           {!currentUser && <p className="mt-4 text-center text-xs text-slate">You’ll be asked to log in first.</p>}
@@ -100,7 +104,7 @@ function DocumentUpload({ label, file, onChange }) {
       <span className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-ink/25 p-3 transition hover:border-amber">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber/15 text-coral"><FileUp size={18} /></span>
         <span className="min-w-0 text-xs"><strong className="block truncate font-display text-sm">{file?.name || `Choose ${label.toLowerCase()}`}</strong><span className="text-slate">{file ? `${(file.size / 1024 / 1024).toFixed(2)} MB` : 'Select a file'}</span></span>
-        <input className="sr-only" type="file" accept=".pdf,.doc,.docx" onChange={(event) => onChange(event.target.files?.[0])} />
+        <input className="sr-only" type="file" accept=".pdf,application/pdf" onChange={(event) => onChange(event.target.files?.[0])} />
       </span>
     </label>
   );

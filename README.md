@@ -1,6 +1,6 @@
-# Departure Job Portal MVP
+# GammaJobs Portal MVP
 
-A frontend-first job portal for applicants and administrators, built with React, Vite, Tailwind CSS, and React Router.
+A job portal frontend for applicants and administrators, built with React, Vite, Tailwind CSS, and React Router. It integrates with the GammaJobs REST API for authentication, jobs, profiles, applications, and document uploads.
 
 ## Run locally
 
@@ -9,20 +9,22 @@ npm install
 npm run dev
 ```
 
-## Demo accounts
+Set `VITE_API_BASE_URL` in `.env` to the backend URL including `/api`. The current deployment is `https://gamma-jpb-portal-backend.onrender.com/api`.
 
-- Applicant: `applicant@departure.dev` / `demo123`
-- Admin: `admin@departure.dev` / `demo123`
+## Configuration and security
 
-All data is intentionally in memory for the MVP. Refreshing the browser resets new accounts, profiles, applications, and jobs.
+- Copy `.env.example` to `.env` for local settings. `.env` files are ignored by Git.
+- Never put passwords, AWS secret keys, database credentials, or private API keys in a Vite client variable. Any `VITE_*` value is bundled into public browser code.
+- Public registration creates applicant accounts only. Administrator accounts must be provisioned by a trusted backend.
+- JWTs are stored in session storage and sent as bearer tokens. Authorization, password hashing, upload validation, and administrator provisioning must always be enforced by the backend.
 
 ## Structure
 
 - `src/app` — routing and app-wide providers
 - `src/components` — shared layout, routing, and UI primitives
 - `src/features` — product features grouped by domain
-- `src/data` — API-shaped mock data
+- `src/services` — API request and session-token handling
 - `src/styles` — Tailwind entry point and signature visual styles
 - `src/utils` — shared formatting helpers
 
-The state provider is the seam for later backend integration: replace its mock operations with API calls while keeping the feature components stable.
+The state provider coordinates API data and authenticated application state.
