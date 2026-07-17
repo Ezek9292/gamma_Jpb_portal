@@ -33,9 +33,18 @@ export function PortalProvider({ children }) {
     setProfiles((items) => ({ ...items, [currentUser.id]: profile }));
   };
 
-  const applyToJob = (jobId) => {
-    if (!currentUser || applications.some((item) => item.jobId === jobId && item.applicantId === currentUser.id)) return;
-    setApplications((items) => [...items, { id: `application-${Date.now()}`, jobId, applicantId: currentUser.id, status: 'applied', appliedAt: new Date().toISOString().slice(0, 10) }]);
+  const applyToJob = (jobId, documents) => {
+    if (!currentUser || currentUser.role !== 'applicant' || !documents?.cv || !documents?.coverLetter
+      || applications.some((item) => item.jobId === jobId && item.applicantId === currentUser.id)) return false;
+    setApplications((items) => [...items, {
+      id: `application-${Date.now()}`,
+      jobId,
+      applicantId: currentUser.id,
+      status: 'applied',
+      appliedAt: new Date().toISOString().slice(0, 10),
+      documents,
+    }]);
+    return true;
   };
 
   const addJob = (job) => {
