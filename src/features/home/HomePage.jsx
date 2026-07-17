@@ -7,8 +7,11 @@ import { JobCard } from '../jobs/components/JobCard';
 export function HomePage() {
   const [query, setQuery] = useState('');
   const navigate = useNavigate();
-  const { jobs } = usePortal();
-  const featured = jobs.filter((job) => job.featured && job.status === 'open').slice(0, 2);
+  const { jobs, jobsLoading } = usePortal();
+  const availableRoles = jobs
+    .filter((job) => job.status === 'open')
+    .sort((first, second) => Number(second.featured) - Number(first.featured))
+    .slice(0, 3);
 
   const submitSearch = (event) => {
     event.preventDefault();
@@ -41,10 +44,10 @@ export function HomePage() {
 
       <section className="page-shell py-20 sm:py-24">
         <div className="mb-10 flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
-          <div><p className="eyebrow">Featured roles</p><h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">Opportunities selected for you.</h2></div>
+          <div><p className="eyebrow">Available roles</p><h2 className="mt-3 font-display text-3xl font-bold tracking-[-0.04em] sm:text-4xl">Explore current opportunities.</h2></div>
           <Link to="/jobs" className="inline-flex items-center gap-2 font-display text-sm font-bold text-coral hover:gap-3">View all roles <ArrowRight size={17} /></Link>
         </div>
-        <div className="grid gap-5">{featured.map((job) => <JobCard key={job.id} job={job} />)}</div>
+        {jobsLoading ? <div className="rounded-2xl border border-ink/10 bg-paperCard py-12 text-center text-slate" role="status">Loading available roles…</div> : availableRoles.length ? <div className="grid gap-5">{availableRoles.map((job) => <JobCard key={job.id} job={job} />)}</div> : <div className="rounded-2xl border border-dashed border-ink/20 bg-paperCard py-12 text-center"><p className="font-display text-lg font-bold">No open roles at the moment</p><p className="mt-2 text-sm text-slate">Please check back soon for new opportunities.</p></div>}
       </section>
 
       <section className="border-y border-ink/10 bg-white/45 py-20">
